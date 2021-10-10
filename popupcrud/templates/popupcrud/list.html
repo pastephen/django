@@ -1,0 +1,18 @@
+{% extends base_template %}
+{% load i18n bootstrap3 bsmodal popupcrud_list %}
+{% block content %}
+{% block create_new %}
+{% if new_url %}
+<div>
+    {% bootstrap_button button_type="link" button_class="btn btn-primary" content=new_button_text href="javascript:void(0);" name="btn_create_new" %}
+</div>
+{% endif %}
+{% endblock create_new %}
+{% if object_list %}
+{% list_content %}
+{% include "popupcrud/_pagination.html" %}
+{% else %}
+<p>{% block empty_table_label %}{% trans "No items." %}{% endblock empty_table_label %}</p>
+{% endif %}
+{% include "popupcrud/_list_popup.html" %}
+{% endblock content %}

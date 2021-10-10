@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap3',
+    'pure_pagination',
     'popupcrud',
     'library',
 ]
@@ -131,3 +132,5 @@ MIDDLEWARE += ['livereload.middleware.LiveReloadScript']
 import socket
 if socket.gethostname() == 'kaveri':
     LIVERELOAD_HOST = '192.168.225.101'
+
+POPUPCRUD_BASE_TEMPLATE = 'base.html'
