@@ -11,10 +11,6 @@ Welcome to django-popupcrud's documentation!
    :caption: Contents:
 
    quickstart
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   reference
+   templatetags
+   settings

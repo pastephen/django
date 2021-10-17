@@ -1,30 +1,47 @@
 # coding: utf-8
-'''
-A template tag to ease creation of Bootstrap modal dialogs. Use this tag like:
+"""
+A tag to help creation of Bootstrap modal dialogs. You may use this tag as:
 
-    {% bsmodal dialogTitle dialogId [close_title_button={Yes|No}] [header_bg_css=''] %}
-        <dialog content goes here>
-    {% endbsmodal %}
+    .. code:: django
 
-This would create a hidden dialog with title dialogTitle and id dialogId.
-dialogTitle can be a template variable (for eg created with
-{% trans 'something' as var %}) or a string literal. dialogId is expected to be
-a string literal. This cane be enclosed in a pair of quotes as is the norm
-for string literals or can be written as it is.
+        {% bsmodal dialogTitle dialogId [close_title_button={Yes|No}] [header_bg_css=''] %}
+            <dialog content goes here>
+        {% endbsmodal %}
 
+    :dialogTitle: Required. The title of the modal window. This can be a template
+        variable (created with ``{% trans 'something' as var %}``) or a
+        string literal.
+    :dialogId: Required. The id of the modal window specified as string literal.
+    :close_title_button: Optional. A flag indicating whether to show the modal
+        window close button on the titlebar. Specify one of ``Yes`` or ``No``.
+    :header_bg_css: Optional. A css class for the header background. Defaults to
+        no style which results in a title with the same background color as the
+        rest of the modal window.
+
+
+This would create a hidden dialog with title ``dialogTitle`` and id ``dialogId``.
 The content of the dialog body is to be written between the pair of tags
-bsmodal and endbsmodal.
+``{% bsmodal %}`` and ``{% endbsmodal %}``.
 
-This would result in the html fragment
-    <div class="modal fade"...>
-        <div class="modal-content">
-            <div class="modal-header">
-            </div>
-            <div class="modal-body">
+The final rendered html fragment would look like this:
+
+    .. code:: html
+
+        <div class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{{dialogTitle}}</h4>
+                </div>
+                <div class="modal-body">
+                    <..content between bsmodal & endbsmodal tags..>
+                </div>
             </div>
         </div>
-    </div>
-'''
+
+Refer to Boostrap `documentation <https://getbootstrap.com/docs/3.3/javascript/#modals>`_ on modals for more information on how to show
+and hide the modal windows.
+"""
 
 from django import template
 
