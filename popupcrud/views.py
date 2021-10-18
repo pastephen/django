@@ -12,8 +12,12 @@ from django.views import generic
 from django.http import JsonResponse
 from django.template import loader
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django import forms
 
 from pure_pagination import PaginationMixin
+
+from .widgets import RelatedFieldPopupFormWidget
+
 
 # default settings
 POPUPCRUD_DEFAULTS = {
@@ -56,6 +60,28 @@ class AjaxObjectFormMixin(object):
             'pk': self.object.pk          # object id
         })
 
+    # following two methods are applicable only to Create/Edit views
+    def get_form_class(self):
+        if getattr(self._viewset, 'form_class', None):
+            return self._viewset.form_class
+        return super(AjaxObjectFormMixin, self).get_form_class()
+
+    def get_form(self, form_class=None):
+        form = super(AjaxObjectFormMixin, self).get_form(form_class)
+        if not getattr(self._viewset, 'form_class', None):
+            self._init_related_fields(form)
+        return form
+
+    def _init_related_fields(self, form):
+        related_popups  = getattr(self._viewset, 'related_object_popups', {})
+        for fname in related_popups:
+            if fname in form.fields:
+                field = form.fields[fname]
+                if isinstance(form.fields[fname], forms.ModelChoiceField):
+                    form.fields[fname].widget = RelatedFieldPopupFormWidget(
+                        widget=forms.Select(choices=form.fields[fname].choices),
+                        new_url=related_popups[fname])
+
     def form_valid(self, form): # pylint: disable=missing-docstring
         retval = super(AjaxObjectFormMixin, self).form_valid(form)
         if self.request.is_ajax() and self._supports_ajax_object_op:
@@ -87,8 +113,7 @@ class AttributeThunk(object):
     def fields(self):
         return self._viewset.fields
 
-    @property
-    def success_url(self):
+    def get_success_url(self):
         return self._viewset.list_url
 
     def get_context_data(self, **kwargs):
@@ -179,10 +204,10 @@ class CreateView(AttributeThunk, TemplateNameMixin, AjaxObjectFormMixin,
     def get_permission_required(self):
         return self._viewset._get_permission_required('create')
 
-    def get_form_class(self):
-        if getattr(self._viewset, 'form_class', None):
-            return self._viewset.form_class
-        return super(CreateView, self).get_form_class()
+    # def get_form_class(self):
+    #     if getattr(self._viewset, 'form_class', None):
+    #         return self._viewset.form_class
+    #     return super(CreateView, self).get_form_class()
 
 
 class DetailView(AttributeThunk, PermissionRequiredMixin, generic.DetailView):
@@ -210,10 +235,10 @@ class UpdateView(AttributeThunk, TemplateNameMixin, AjaxObjectFormMixin,
     def get_permission_required(self):
         return self._viewset._get_permission_required('update')
 
-    def get_form_class(self):
-        if getattr(self._viewset, 'form_class', None):
-            return self._viewset.form_class
-        return super(UpdateView, self).get_form_class()
+    # def get_form_class(self):
+    #     if getattr(self._viewset, 'form_class', None):
+    #         return self._viewset.form_class
+    #     return super(UpdateView, self).get_form_class()
 
 
 class DeleteView(AttributeThunk, PermissionRequiredMixin, generic.DeleteView):
@@ -345,12 +370,23 @@ class PopupCrudViewSet(object):
     #: to the internal template.
     list_template = None
 
-    #: The template file to use for create view. If not specified, defaults
-    #: to the internal template.
+    # #: The template file to use for create view. If not specified, defaults
+    # #: to the internal template.
     #create_template: template to use for create new object view
     #edit_template: template to use for editing an existing object view
     #detail_template: template to use for detail view
     #delete_template: template to use for delete view
+
+    #: A table that maps foreign keys to its target model's
+    #: PopupCrudViewSet.create() view url. This would result in the select box
+    #: for the foreign key to display a 'New {model}' link at its bottom, which
+    #: the user can click to add a new {model} object from another popup. The
+    #: new object will be added and will be added to the select's options and
+    #: set as the selected option.
+    #:
+    #: Defaults to empty dict, meaning creation of target model objects, for the
+    #: foreign keys of a model, from a popup is disabled.
+    related_object_popups = {}
 
     @classonlymethod
     def _generate_view(cls, crud_view_class, **initkwargs):
